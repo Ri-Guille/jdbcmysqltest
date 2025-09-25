@@ -22,7 +22,7 @@ public class JDBC_Test {
 		Connection connection;
 		//creamos una conexion de la base de datos
 		try {
-			connection = new DBHelper().getConnection();
+			connection =  DBHelper.getConnection();
 //						DriverManager.getConnection(dbURL, username, password);
 			
 			//String dropSQLString = "DROP TABLE users";
