@@ -1,7 +1,7 @@
 /**
  * 
  */
-package test;
+package user;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
