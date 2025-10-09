@@ -5,7 +5,9 @@ package user;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import model.User;
 
@@ -50,13 +52,13 @@ public class UserDao {
 	public void delete(int id) {
 		String deleteSQL = "DELETE FROM users WHERE id = ?";
 
-		Connection conn = DBHelper.getConnection();
+		Connection connection = DBHelper.getConnection();
 		try {
-			PreparedStatement ps = conn.prepareStatement(deleteSQL);
+			PreparedStatement ps = connection.prepareStatement(deleteSQL);
 			ps.setInt(1, id);
 			int result = ps.executeUpdate();
 			System.out.println("Delete rows " + result);
-			conn.close();
+			connection.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -69,7 +71,32 @@ public class UserDao {
 	}
 
 	public User[] findAll() {
-
+		
+		String selecSQL = "SELECT * FROM users where name = 'Alejandro' ";
+		User[] users;
+		ArrayList<User> userList = new ArrayList<User>();
+		userList.add(null);
+		Connection connection = DBHelper.getConnection();
+		try {
+			PreparedStatement ps = connection.prepareStatement(selecSQL);
+			ResultSet resultSet = ps.executeQuery();
+//			System.out.println("Total rows is " + resultSet.last());
+//			System.out.println("rows = " + resultSet.getFetchSize());
+			while (resultSet.next()) {
+				
+				int id = resultSet.getInt("id");
+				String name = resultSet.getString("name");
+				int age = resultSet.getInt("age");
+				String email = resultSet.getString("email");
+				String password = resultSet.getString("password");
+				boolean Vip = resultSet.getBoolean("Vip");
+				System.out.println("record > id = " + id + " name = " + name + " IsVip = " + Vip);				Float balanceFloat = resultSet.getFloat("balance");
+				userList.add(new User(name, age, email, password, id, Vip));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		return null;
 
 	}

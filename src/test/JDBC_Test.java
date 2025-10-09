@@ -61,7 +61,7 @@ public class JDBC_Test {
 			ps = connection.prepareStatement(deleteSQL);
 			ps.executeUpdate();
 
-			String selecSQL = "SELECT * FROM users";
+			String selecSQL = "SELECT * FROM users where name = 'Alejandro' ";
 			ps = connection.prepareStatement(selecSQL);
 			ResultSet resultSet = ps.executeQuery();
 			while (resultSet.next()) {
