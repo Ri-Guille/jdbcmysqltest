@@ -3,6 +3,8 @@
  */
 package Test;
 
+import java.util.ArrayList;
+
 import model.User;
 import user.UserDao;
 
@@ -15,8 +17,8 @@ public class UserDaoTest {
 		UserDao userDao = new UserDao();
 		//userDao.insert(0, null, 10, null, null, false);
 		//userDao.delete(0);
-		User[] users = userDao.findAll();
-		
+		ArrayList<User> users = userDao.findAll();	
+		System.out.println(users.size());
 		
 	}
 	
