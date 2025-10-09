@@ -70,7 +70,7 @@ public class UserDao {
 
 	}
 
-	public User[] findAll() {
+	public ArrayList findAll() {
 		
 		String selecSQL = "SELECT * FROM users where name = 'Alejandro' ";
 		User[] users;
@@ -93,6 +93,9 @@ public class UserDao {
 				System.out.println("record > id = " + id + " name = " + name + " IsVip = " + Vip);				Float balanceFloat = resultSet.getFloat("balance");
 				userList.add(new User(name, age, email, password, id, Vip));
 			}
+			
+			return userList;
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
