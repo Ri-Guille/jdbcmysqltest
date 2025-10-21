@@ -8,4 +8,7 @@ package user;
  */
 public class ProductDao {
 
+    static void main(String[] args) {
+
+    }
 }
