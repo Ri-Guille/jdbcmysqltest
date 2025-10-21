@@ -17,9 +17,15 @@ public class UserDaoTest {
 		UserDao userDao = new UserDao();
 		//userDao.insert(0, null, 10, null, null, false);
 		//userDao.delete(0);
-		ArrayList<User> users = userDao.findAll();	
-		System.out.println(users.size());
+//		ArrayList<User> users = userDao.findAll();	
+//		System.out.println("rosw " + users.size());
+//		
+//		User user = userDao.find(2);	
+//		System.out.println(user.getName());
+//		
+//		userDao.update(2, "alejan@gmail.com");
 		
+		userDao.transfer(1, 2, 5);
 	}
 	
 }

@@ -10,7 +10,7 @@ class Test {
 		System.out.print(user2.name);
 		user1.setName("Luis");
 		System.out.println(user1.getName());
-		User user3 = new User("Fernando", 10, "email@gmail.com", "joselu123", 35 ,true);
+		User user3 = new User("Fernando", 10, "email@gmail.com", "joselu123", 35 ,true, 100);
 		System.out.println(user3.getPassword());
 	}
 }

@@ -7,6 +7,7 @@ public class User {
 	private String password;
 	private long id;
 	private boolean Vip;
+	private float Balance;
 
 //Los atributos
 	public User(Long id, String name) {
@@ -67,15 +68,26 @@ public class User {
 	public void setVip(boolean vip) {
 		Vip = vip;
 	}
+	
+	public float getBalance() {
+		return Balance;
+	}
+
+	public void setBalance(float balance) {
+		Balance = balance;
+	}
+
 	public User(long id) {
 		this.id = id;
 	}
-	public User(String name, int age, String email, String password, long id, boolean Vip) {
+	public User(String name, int age, String email, String password, long id, boolean Vip, float Balance) {
 		this.name = name;
 		this.age = age;
 		this.email = email;
 		this.password = password;
 		this.id = id;
 		this.Vip = Vip;
+		this.Balance = Balance;
+		
 	}
 }
