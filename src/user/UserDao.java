@@ -160,7 +160,7 @@ public class UserDao implements UserDaoInterface {
 				/**
 				 * La instancia/objeto de la clase PreparedStatement se encarga de sustituir los
 				 * placeholders ? con los valores pasados a traves de los parametros, de manera
-				 * que nos permite reutilizar el codigo aun m�s.
+				 * que nos permite reutilizar el codigo aun mas.
 				 */
 				ps.setLong(1, users[i].getId());// Sustituye el primer placeholder con el valor de id
 				ps.setString(2, users[i].getName());// Sustituye el segundo placeholder con el valor de name
