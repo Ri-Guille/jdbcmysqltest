@@ -13,13 +13,16 @@ import user.UserDao;
 public class ParallelAccessSimulation {
 	public static void main(String[] args) {
 		UserDao userDao = new UserDao();
-		long fromUserId = 2;
-		long toUserId = 1;
+		long fromUserId = 1;
+		long toUserId = 2;
 		ArrayList<Thread> threads = new ArrayList<Thread>(100);
 		System.out.println(threads.size());
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 			Thread thread = new Thread(() -> {
-				userDao.transfer(fromUserId, toUserId, 1);
+                for (int j = 0; j < 10; j++) {
+                    userDao.transferWithQueryAndUpdate(fromUserId, toUserId, 1);
+                }
+
 			});
 			threads.add(thread);
 		}

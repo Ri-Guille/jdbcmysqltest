@@ -25,7 +25,7 @@ public class UserDao implements UserDaoInterface {
 			/**
 			 * La instancia/objeto de la clase PreparedStatement se encarga de sustituir los
 			 * placeholders ? con los valores pasados a traves de los parametros, de manera
-			 * que nos permite reutilizar el codigo aun más.
+			 * que nos permite reutilizar el codigo aun mï¿½s.
 			 */
 			ps.setInt(1, id);// Sustituye el primer placeholder con el valor de id
 			ps.setString(2, name);// Sustituye el segundo placeholder con el valor de name
@@ -160,7 +160,7 @@ public class UserDao implements UserDaoInterface {
 				/**
 				 * La instancia/objeto de la clase PreparedStatement se encarga de sustituir los
 				 * placeholders ? con los valores pasados a traves de los parametros, de manera
-				 * que nos permite reutilizar el codigo aun más.
+				 * que nos permite reutilizar el codigo aun mï¿½s.
 				 */
 				ps.setLong(1, users[i].getId());// Sustituye el primer placeholder con el valor de id
 				ps.setString(2, users[i].getName());// Sustituye el segundo placeholder con el valor de name
@@ -223,4 +223,43 @@ public class UserDao implements UserDaoInterface {
 		}
 		return false;
 	}
+
+    @Override
+    public boolean transferWithQueryAndUpdate(long fromUserId, long toUserId, float amount) {
+        //Paso 1:consulta los datos de los usuarios para chequear si existen ellos y cumplen las condiciones
+        //Paso 2: ejecutamos los sqls de update
+            String selecSQL = "SELECT * FROM users where id = ?";
+
+            try (Connection connection = DBHelper.getConnection();
+                 PreparedStatement ps = connection.prepareStatement(selecSQL);) {
+                ps.setInt(1, (int)fromUserId);
+                ResultSet resultSet = ps.executeQuery();
+//			System.out.println("Total rows is " + resultSet.last());
+//			System.out.println("rows = " + resultSet.getFetchSize());
+                if (resultSet.next()) {
+                    boolean hasEnough = resultSet.getFloat("balance") >= amount;
+                    String name = resultSet.getString("name");
+                    int age = resultSet.getInt("age");
+                    String email = resultSet.getString("email");
+                    String password = resultSet.getString("password");
+                    boolean Vip = resultSet.getBoolean("Vip");
+                    float balance = resultSet.getFloat("balance");
+                    System.out.println("record > id = " + fromUserId + " name = " + name + " balance = " + balance);
+                    resultSet.close();
+                    new User(name, age, email, password,fromUserId, Vip, balance);
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return false;
+
+        }
+
+    @Override
+    public boolean transferWithTransaction(long fromUserId, long toUserId, float amount) {
+        return false;
+    }
 }
+

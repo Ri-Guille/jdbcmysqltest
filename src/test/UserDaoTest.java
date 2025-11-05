@@ -25,7 +25,7 @@ public class UserDaoTest {
 //		
 //		userDao.update(2, "alejan@gmail.com");
 		
-		userDao.transfer(1, 2, 5);
+		userDao.transfer(2, 1, 5);
 	}
 	
 }

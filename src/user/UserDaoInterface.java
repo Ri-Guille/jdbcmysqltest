@@ -28,5 +28,20 @@ public interface UserDaoInterface {
 	 * @return			 true si se ejecuta correctamente
 	 */
 	public boolean transferWithBatch(long fromUserId, long toUserId, float amount);
-	
+    /**
+     * Transferir dinero de un usuario a otro
+     * @param fromUserId  id del enviador
+     * @param toUserId	 id del receptor
+     * @param amount	 la cantidad mandada
+     * @return			 true si se ejecuta correctamente
+     */
+    public boolean transferWithQueryAndUpdate(long fromUserId, long toUserId, float amount);
+    /**
+     * Transferir dinero de un usuario a otro
+     * @param fromUserId  id del enviador
+     * @param toUserId	 id del receptor
+     * @param amount	 la cantidad mandada
+     * @return			 true si se ejecuta correctamente
+     */
+    public boolean transferWithTransaction(long fromUserId, long toUserId, float amount);
 }
