@@ -366,48 +366,43 @@ public class UserDao implements UserDaoInterface {
 
             //operand ? operand: operand
             lockUser(connection, selectSQL1, first, amount, first == fromUserId);
-            lockUser(connection, selectSQL2, second, amount, second == fromUserId);
-
-
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-//paso 2: verifica la existencia del receptor
-            try (PreparedStatement ps = connection.prepareStatement(selectSQL2);){
-                ps.setLong(1, toUserId);
-                ResultSet resultSet = ps.executeQuery();
-                if (!resultSet.next()) {
-                    throw new IllegalArgumentException("The receiver does not exist");
-                }
-                resultSet.close();
-            } catch (Exception e) {//Capturar cualquir posible exception en el proceso
-                connection.rollback();
-                e.printStackTrace();
-                return false;
-            }
+
+            //paso 2: verifica la existencia del segundo usuario
+            lockUser(connection, selectSQL2, second, amount, second == fromUserId);
+
+
+
 //paso 3: actualizar las cuentas de los dos usuarios
-            try (PreparedStatement ps1 = connection.prepareStatement(updateSQL1);
-                 PreparedStatement ps2 = connection.prepareStatement(updateSQL2);){
-                int rowsAffected = ps1.executeUpdate();
-                if (rowsAffected <= 0) {
-                    throw new SQLException();
-                }
-                rowsAffected = ps2.executeUpdate();
-                if (rowsAffected <= 0) {
-                    throw new SQLException();
-                }
-//finalizar una transacion
-                connection.commit();
-                return true;
-            } catch (Exception e) {//Capturar cualquir posible exception en el proceso
-                connection.rollback();
-                e.printStackTrace();
-                return false;
-            }
+
+            updateAccount(connection,updateSQL1);
+            updateAccount(connection,updateSQL2);
+
+            //finalizar una transacion
+            connection.commit();
+            return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+
+    private void updateAccount(Connection connection, String updateSQL) throws SQLException {
+
+        try (PreparedStatement ps = connection.prepareStatement(updateSQL)){
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected <= 0) {
+                throw new SQLException();
+            }
+
+        } catch (Exception e) {//Capturar cualquir posible exception en el proceso
+            connection.rollback();
+            e.printStackTrace();
         }
     }
 
