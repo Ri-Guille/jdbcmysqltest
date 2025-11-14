@@ -28,7 +28,10 @@ public class ParallelAccessSimulation {
             Thread thread = new Thread(
                     () -> {
                         for (int j = 0; j < 10; j++){
-                            userDao.transferWithTransaction(fromUserId, toUserId, 1);
+//                            userDao.transferWithTransaction(fromUserId, toUserId, 1);
+//                            userDao.transferWithTransaction(toUserId, fromUserId, 1);
+                            userDao.transferWithTransactionWithoutDeadlock(fromUserId, toUserId, 1);
+                            userDao.transferWithTransactionWithoutDeadlock(toUserId, fromUserId, 1);
                         }
                     }
             );

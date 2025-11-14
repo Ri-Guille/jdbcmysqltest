@@ -344,94 +344,105 @@ public class UserDao implements UserDaoInterface {
 
     @Override
     public boolean transferWithTransactionWithoutDeadlock(long fromUserId, long toUserId, float amount) {
-        {
+        //Evitar dead lock ordenando los ids de los usuarios,
+// siempre empleamos lock en las filas con el mismo orden
+        long first = Math.min(fromUserId, toUserId);
+        long second = Math.max(fromUserId, toUserId);
+//Paso 1 : consulta los datos de los dos usuarios para chequear
+// si existen ellos y cumplen las condiciones
+// por ejemplo si tiene suficiente dinero para transferir
+        String selectSQL1 = "select * from users where id = ? for update";
+        String selectSQL2 = "select * from users where id = ? for update";
+        String updateSQL1 =
+                "update users set balance = balance - " + amount + " where id = " + first;
+        String updateSQL2 =
+                "update users set balance = balance + " + amount + " where id = " + second;
 
-            {
-                if (amount <= 0) {
-                    System.out.println("no tienes suficiente dinero" + amount);
+        try (Connection connection = DBHelper.getConnection();){
+//iniciar una transaccion de multiples lecturas y escrituras que se dependen entre si
+//Si uno de los pasos falla, nos permite deshacer todos los cambios en esta transaccion
+            connection.setAutoCommit(false);
+
+
+            //operand ? operand: operand
+            lockUser(connection, selectSQL1, first, amount, first == fromUserId);
+            lockUser(connection, selectSQL2, second, amount, second == fromUserId);
+
+
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+//paso 2: verifica la existencia del receptor
+            try (PreparedStatement ps = connection.prepareStatement(selectSQL2);){
+                ps.setLong(1, toUserId);
+                ResultSet resultSet = ps.executeQuery();
+                if (!resultSet.next()) {
+                    throw new IllegalArgumentException("The receiver does not exist");
                 }
-
-                //evitar dead lock ordenando los ids de los usuarios,
-                // siempre empleamos lock en las filas con el mismo orden
-                long first = Math.min(fromUserId, toUserId);
-                long second = Math.max(fromUserId, toUserId);
-
-                // paso1 : consulta los datos de los dos usuarios para chequear si existen ellos
-                // y cumplen las condiciones
-                // primero creamos las querys de select para hacer select para compobar quelos usuarios exiten  y update
-                // para hacer la trasferencia de dinero
-                String selectSQL1 = "select * from users where id =  " + first + " For Update";
-                String selectSQL2 = "select * from users where id =  " + second + " For Update";
-                String updSQL1 = "UPDATE users SET balance = balance - " + amount + " where id = " + first;
-                String updSQL2 = "UPDATE users SET balance = balance + " + amount + " where id = " + second;
-                /**
-                 * creamos 1 un objeto de conexion y otros dos para el ejecutar los dos selects
-                 */  Connection connection = DBHelper.getConnection();
-                try (PreparedStatement ps = connection.prepareStatement(selectSQL1);
-                     //iniciar una transaccion de multiples lecturas y escrituras que se dependen entre si
-                     //Si uno de los pasos falla, nos permite deshacer todos los cambios en esta transaccion
-                     PreparedStatement ps2 = connection.prepareStatement(selectSQL2);) {
-
-                    // *CAMBIO NECESARIO 1: Desactivar autocommit para iniciar la transacción*
-                    // hace que se ejecute de uno en uno para que no colapsen a la vez
-                    connection.setAutoCommit(false);
-                    // empieza la transaccion
-                    /**
-                     * creamos los parametros que podamos insertar desde la terminal
-                     */
-                    // ps.setLong(1, FromUserId);
-                    // se crea la variable con la ejecucion de la query
-                    ResultSet resultSet = ps.executeQuery();
-                    //  si el resultado es correcto que siga ejecutando
-                    if (resultSet.next()) {
-                        // se crea otra variable que sea boolean comprobando que si balance es mayor que amount se pueda ejecutar
-                        boolean enoughBalance = resultSet.getFloat("balance") >= amount;
-                        if (enoughBalance) {
-                            // aqui comprueba que toUserId es igual que a la base de datos
-                            // ps2.setLong(1, toUserId);
-                            ResultSet resultSet1 = ps2.executeQuery();
-                            if (resultSet1.next()) {
-                                /**
-                                 * aqui se crea una variable llamada rowsUpdate que contiene las
-                                 * lineas actualizadas y tambien que se ejecute el update
-                                 */
-                                PreparedStatement ps3 = connection.prepareStatement(updSQL1);
-                                int rowsUpdate = ps3.executeUpdate();
-                                System.out.println("rows update = " + rowsUpdate);
-                                // aqui dice que si rowsupdate se ha actualizado al menos una vez se ejecute lo de abajo
-                                if (rowsUpdate > 0) {
-
-                                    ps3 = connection.prepareStatement(updSQL2);
-                                    rowsUpdate = ps3.executeUpdate();
-                                    System.out.println("rows update = " + rowsUpdate);
-                                    connection.commit();
-                                    return true; // Retornar true si la transferencia fue exitosa
-                                }
-
-                            }
-                        }
-
-                        resultSet.close();
-
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    try {
-                        connection.rollback();
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-
-
-                // paso 2 : ejecutamos los sql de update
-
+                resultSet.close();
+            } catch (Exception e) {//Capturar cualquir posible exception en el proceso
+                connection.rollback();
+                e.printStackTrace();
                 return false;
             }
+//paso 3: actualizar las cuentas de los dos usuarios
+            try (PreparedStatement ps1 = connection.prepareStatement(updateSQL1);
+                 PreparedStatement ps2 = connection.prepareStatement(updateSQL2);){
+                int rowsAffected = ps1.executeUpdate();
+                if (rowsAffected <= 0) {
+                    throw new SQLException();
+                }
+                rowsAffected = ps2.executeUpdate();
+                if (rowsAffected <= 0) {
+                    throw new SQLException();
+                }
+//finalizar una transacion
+                connection.commit();
+                return true;
+            } catch (Exception e) {//Capturar cualquir posible exception en el proceso
+                connection.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void lockUser(Connection connection, String selectSQL, long userId, float amount, boolean isSender) throws SQLException {
+
+        //paso 1: verifica la existencia de usaurio de mandador, si tiene suficiente dinero
+        try (PreparedStatement ps = connection.prepareStatement(selectSQL);
+        ){
+            ps.setLong(1, userId);
+
+            try ( ResultSet resultSet = ps.executeQuery();){
+//1.1 Chequear la existencia del usuario
+                if (resultSet.next()) {
+                    if(isSender){
+                        //1.2 examinar si tiene suficiente dinero
+                        boolean hasEnough =
+                                resultSet.getFloat("balance") >= amount;
+                        if(!hasEnough){
+                            throw new Exception("The user does not have enough balance");
+                        }
+                    }
+
+                }
+                else{
+                    throw new IllegalArgumentException();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch (Exception e) {//Capturar cualquir posible exception en el proceso
+            connection.rollback();
+            e.printStackTrace();
 
         }
-
     }
 }
 
