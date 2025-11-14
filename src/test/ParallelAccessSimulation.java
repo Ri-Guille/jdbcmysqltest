@@ -17,18 +17,28 @@ public class ParallelAccessSimulation {
 		long toUserId = 2;
 		ArrayList<Thread> threads = new ArrayList<Thread>(100);
 		System.out.println(threads.size());
-		for (int i = 0; i < 10; i++) {
-			Thread thread = new Thread(() -> {
-                for (int j = 0; j < 10; j++) {
-                    userDao.transferWithQueryAndUpdate(fromUserId, toUserId, 1);
-                }
-
-			});
+//		for (int i = 0; i < 10; i++) {
+//			Thread thread = new Thread(() -> {
+//                for (int j = 0; j < 10; j++) {
+//                    userDao.transferWithQueryAndUpdate(fromUserId, toUserId, 1);
+//                }
+//			});
+        System.out.println("number of processors = " + Runtime.getRuntime().availableProcessors());
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++){
+            Thread thread = new Thread(
+                    () -> {
+                        for (int j = 0; j < 10; j++){
+                            userDao.transferWithTransaction(fromUserId, toUserId, 1);
+                        }
+                    }
+            );
 			threads.add(thread);
 		}
+
+
 		for (Thread thread : threads) {
 			thread.start();
-			
+
 		}
 	}
 }
